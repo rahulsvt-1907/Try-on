@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Stylish AI — Virtual Fashion Try-On (Python)
+
+An AI-powered virtual clothing try-on application built with **Python** and **Flask**.  
+Browse a curated clothing catalog and instantly try on any outfit using the **Try-On Diffusion AI** (via RapidAPI).
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.10+, Flask 3 |
+| AI Integration | [Try-On Diffusion API](https://rapidapi.com/tryondiffusion/api/try-on-diffusion) via `requests` |
+| Frontend | Jinja2 templates, Tailwind CSS (CDN), Vanilla JS |
+| Environment | `python-dotenv` |
+
+## Project Structure
+
+```
+Try-on/
+├── app.py              # Main Flask application & API routes
+├── requirements.txt    # Python dependencies
+├── .env.example        # Environment variable template
+├── db/
+│   ├── __init__.py
+│   └── pins.py         # Clothing catalog data
+├── templates/
+│   ├── base.html       # Base layout with navbar & profile modal
+│   ├── index.html      # Home page — clothing catalog with filters
+│   └── tryon.html      # Virtual try-on page
+└── static/
+    ├── css/styles.css  # Custom styles (glassmorphism)
+    ├── js/main.js      # Home page JS (filters, search)
+    ├── js/tryon.js     # Try-on page JS (AI API call)
+    └── images/logo.png
+```
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pip install -r requirements.txt
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Set up environment variables
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Edit `.env` and add your [RapidAPI key](https://rapidapi.com/tryondiffusion/api/try-on-diffusion):
 
-## Learn More
+```
+RAPIDAPI_KEY=your_rapidapi_key_here
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Run the development server
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+python app.py
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:5000](http://localhost:5000) in your browser.
 
-## Deploy on Vercel
+## Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- 🛍️ **Clothing Catalog** — Pinterest-style grid with 30+ curated outfits
+- 🔍 **Filter & Search** — Filter by gender (Male/Female), category, and search by name
+- 👤 **Profile Management** — Save your measurements and avatar photo (stored in browser)
+- ✨ **AI Virtual Try-On** — Upload or describe both an avatar and a clothing item; the AI generates a realistic composite image
+- 🌄 **Background Customisation** — Add an optional background scene description
+- ⬇️ **Download & Share** — Save the result or share via the native share API
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## AI Integration
+
+The application uses the [Try-On Diffusion API](https://rapidapi.com/tryondiffusion/api/try-on-diffusion) to generate realistic try-on images.
+
+**Parameters accepted:**
+- `clothing_image` — Clothing item image (JPEG/PNG/WebP, ≤4MB)
+- `avatar_image` — Person/model image (JPEG/PNG/WebP, ≤4MB)
+- `clothing_prompt` — Text description of the clothing (e.g. *"red floral dress"*)
+- `avatar_prompt` — Text description of the avatar (e.g. *"young woman with long hair"*)
+- `background_prompt` — Optional background description
+- `avatar_sex` — `"male"` or `"female"` (auto-detected if omitted)
+- `seed` — Integer for reproducible results
+
+## Authors
+
+Rahul Srivastava & Hemali Dholariya — UDP066 Fashion Stylish AI
