@@ -1,118 +1,18 @@
 {% extends "base.html" %}
-
-{% block title %}Stylish AI — Virtual Fashion Try-On{% endblock %}
-
+{% block title %}Catalog — Stylish AI{% endblock %}
 {% block content %}
-<div class="max-w-screen-xl mx-auto px-4 py-8">
-
-  <!-- Hero Section -->
-  <div class="text-center mb-10">
-    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-3">
-      Fashion <span class="text-purple-600">Reimagined</span>
-    </h1>
-    <p class="text-gray-500 text-lg max-w-xl mx-auto">
-      Browse our curated clothing catalog and try on any outfit instantly with AI.
-    </p>
-    <a href="/tryon"
-      class="inline-flex items-center mt-5 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold shadow-md hover:from-purple-600 hover:to-pink-600 transition text-base gap-2">
-      ✨ Start Virtual Try-On
-    </a>
-  </div>
-
-  <!-- Filters -->
-  <div class="flex flex-wrap gap-3 items-center mb-6">
-    <!-- Search -->
-    <div class="relative flex-1 min-w-[200px] max-w-sm">
-      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-      <input
-        type="text"
-        id="search-input"
-        placeholder="Search clothing..."
-        oninput="filterPins()"
-        class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white text-sm"
-      />
-    </div>
-
-    <!-- Gender filter -->
-    <div class="flex gap-2">
-      {% for g in ['All', 'Male', 'Female'] %}
-      <button
-        onclick="setGenderFilter('{{ g }}')"
-        data-gender="{{ g }}"
-        class="gender-btn px-4 py-2 rounded-xl text-sm font-medium border transition
-          {% if g == 'All' %}bg-purple-600 text-white border-purple-600{% else %}bg-white text-gray-600 border-gray-200 hover:border-purple-300{% endif %}"
-      >{{ g }}</button>
-      {% endfor %}
-    </div>
-
-    <!-- Category filter -->
-    <div class="flex gap-2 flex-wrap">
-      <button onclick="setCategoryFilter('All')" data-category="All"
-        class="category-btn px-3 py-1.5 rounded-lg text-xs font-medium border bg-white text-gray-600 border-gray-200 hover:border-purple-300 transition">
-        All
-      </button>
-      {% for cat in categories %}
-      <button onclick="setCategoryFilter('{{ cat }}')" data-category="{{ cat }}"
-        class="category-btn px-3 py-1.5 rounded-lg text-xs font-medium border bg-white text-gray-600 border-gray-200 hover:border-purple-300 transition">
-        {{ cat }}
-      </button>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Results count -->
-  <p class="text-sm text-gray-500 mb-4" id="results-count"></p>
-
-  <!-- Clothing Grid -->
-  <div id="pins-grid" class="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-3 space-y-3">
-    {% for pin in pins %}
-    <div class="pin-card break-inside-avoid glass-card overflow-hidden cursor-pointer group"
-      data-gender="{{ pin.gender or '' }}"
-      data-category="{{ pin.category or '' }}"
-      data-title="{{ pin.title or '' }}"
-      data-alt="{{ pin.alt or '' }}"
-      onclick="tryOnPin('{{ pin.src | e }}')"
-    >
-      <div class="relative overflow-hidden rounded-2xl">
-        <img
-          src="{{ pin.src }}"
-          alt="{{ pin.alt or pin.title or 'Clothing item' }}"
-          class="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-          onerror="this.parentElement.parentElement.style.display='none'"
-        />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-          <div>
-            {% if pin.title %}
-            <p class="text-white font-semibold text-sm leading-tight">{{ pin.title }}</p>
-            {% endif %}
-            {% if pin.gender %}
-            <span class="text-purple-300 text-xs">{{ pin.gender }}</span>
-            {% endif %}
-            {% if pin.category %}
-            <span class="text-gray-300 text-xs ml-1">· {{ pin.category }}</span>
-            {% endif %}
-          </div>
-        </div>
-        <!-- Try On button overlay -->
-        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span class="bg-white/90 text-purple-700 text-xs font-bold px-2 py-1 rounded-lg shadow">Try On ✨</span>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-
-  <!-- No results message -->
-  <div id="no-results" class="hidden text-center py-16 text-gray-400">
-    <p class="text-5xl mb-4">👗</p>
-    <p class="text-lg font-medium">No items found</p>
-    <p class="text-sm mt-1">Try adjusting your filters or search term</p>
-  </div>
-
+<div class="mb-5 flex flex-wrap gap-3 bg-white rounded-xl p-4 shadow">
+  <input id="search" name="q" placeholder="Search..." class="border rounded px-3 py-2"
+    hx-get="/api/clothing/fragment/grid" hx-trigger="keyup changed delay:300ms" hx-target="#pins-grid" hx-include="#gender,#category,#search" />
+  <select id="gender" name="gender" class="border rounded px-2 py-2"
+    hx-get="/api/clothing/fragment/grid" hx-trigger="change" hx-target="#pins-grid" hx-include="#gender,#category,#search">
+    <option>All</option><option>Male</option><option>Female</option>
+  </select>
+  <select id="category" name="category" class="border rounded px-2 py-2"
+    hx-get="/api/clothing/fragment/grid" hx-trigger="change" hx-target="#pins-grid" hx-include="#gender,#category,#search">
+    <option>All</option>
+    {% for cat in categories %}<option>{{ cat }}</option>{% endfor %}
+  </select>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<div id="pins-grid">{% include 'partials/pins_grid.html' %}</div>
 {% endblock %}

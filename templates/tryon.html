@@ -1,171 +1,42 @@
 {% extends "base.html" %}
-
-{% block title %}Virtual Try-On — Stylish AI{% endblock %}
-
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4 md:p-8">
-  <div class="w-full max-w-7xl bg-white/90 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-10 flex flex-col md:flex-row gap-8">
-
-    <!-- Main Content -->
-    <div class="w-full md:w-3/4 flex flex-col gap-8">
-      <h1 class="text-3xl font-bold text-gray-900">Virtual Try-On</h1>
-
-      <!-- Error message -->
-      <div id="error-banner" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between">
-        <span id="error-text" class="text-sm"></span>
-        <button onclick="document.getElementById('error-banner').classList.add('hidden')"
-          class="ml-4 text-red-600 font-bold text-lg">&times;</button>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Avatar Input -->
-        <div class="glass-card p-5 flex flex-col gap-4">
-          <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-gray-800 text-lg">👤 Avatar</h2>
-            <div class="flex gap-2 text-xs">
-              {% for mode in [('both', 'Both'), ('image', 'Image'), ('prompt', 'Prompt')] %}
-              <button onclick="setAvatarMode('{{ mode[0] }}')" data-avatar-mode="{{ mode[0] }}"
-                class="avatar-mode-btn px-2 py-1 rounded-lg border transition
-                  {% if mode[0] == 'both' %}bg-purple-600 text-white border-purple-600{% else %}bg-white text-gray-500 border-gray-200 hover:border-purple-300{% endif %}">
-                {{ mode[1] }}
-              </button>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Avatar Image Upload -->
-          <div id="avatar-image-section">
-            <div id="avatar-upload-area" onclick="document.getElementById('avatar-input').click()"
-              class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-purple-400 transition">
-              <p class="text-gray-400 text-sm">📷 Click to upload avatar image</p>
-              <p class="text-gray-300 text-xs mt-1">JPEG, PNG or WebP, ≤4MB, min 256×256px</p>
-            </div>
-            <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/webp" class="hidden"
-              onchange="handleAvatarImage(event)" />
-            <div id="avatar-preview-wrap" class="hidden mt-3 relative">
-              <img id="avatar-preview" class="w-full rounded-xl object-cover max-h-48" alt="Avatar preview" />
-              <button onclick="clearAvatarImage()"
-                class="absolute top-2 right-2 bg-white/80 text-red-500 rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold hover:bg-red-50 transition">✕</button>
-            </div>
-          </div>
-
-          <!-- Avatar Prompt -->
-          <div id="avatar-prompt-section">
-            <textarea id="avatar-prompt" rows="2" placeholder='Describe the avatar (e.g. "young woman with long hair")'
-              class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-300"></textarea>
-          </div>
-
-          <!-- Avatar options -->
-          <div class="flex gap-3">
-            <div class="flex-1">
-              <label class="text-xs text-gray-500 mb-1 block">Gender</label>
-              <select id="avatar-sex" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
-                <option value="">Auto-detect</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-            </div>
-            <div class="flex-1">
-              <label class="text-xs text-gray-500 mb-1 block">Seed (optional)</label>
-              <input type="number" id="seed" placeholder="e.g. 42"
-                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Clothing Input -->
-        <div class="glass-card p-5 flex flex-col gap-4">
-          <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-gray-800 text-lg">👕 Clothing</h2>
-            <div class="flex gap-2 text-xs">
-              {% for mode in [('both', 'Both'), ('image', 'Image'), ('prompt', 'Prompt')] %}
-              <button onclick="setClothingMode('{{ mode[0] }}')" data-clothing-mode="{{ mode[0] }}"
-                class="clothing-mode-btn px-2 py-1 rounded-lg border transition
-                  {% if mode[0] == 'both' %}bg-teal-600 text-white border-teal-600{% else %}bg-white text-gray-500 border-gray-200 hover:border-teal-300{% endif %}">
-                {{ mode[1] }}
-              </button>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Clothing Image Upload -->
-          <div id="clothing-image-section">
-            <div id="clothing-upload-area" onclick="document.getElementById('clothing-input').click()"
-              class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-teal-400 transition">
-              <p class="text-gray-400 text-sm">👔 Click to upload clothing image</p>
-              <p class="text-gray-300 text-xs mt-1">JPEG, PNG or WebP, ≤4MB, min 256×256px</p>
-            </div>
-            <input type="file" id="clothing-input" accept="image/jpeg,image/png,image/webp" class="hidden"
-              onchange="handleClothingImage(event)" />
-            <div id="clothing-preview-wrap" class="hidden mt-3 relative">
-              <img id="clothing-preview" class="w-full rounded-xl object-cover max-h-48" alt="Clothing preview" />
-              <button onclick="clearClothingImage()"
-                class="absolute top-2 right-2 bg-white/80 text-red-500 rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold hover:bg-red-50 transition">✕</button>
-            </div>
-          </div>
-
-          <!-- Clothing Prompt -->
-          <div id="clothing-prompt-section">
-            <textarea id="clothing-prompt" rows="2" placeholder='Describe the clothing (e.g. "red floral dress")'
-              class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-300"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- Background Prompt -->
-      <div class="glass-card p-5">
-        <h2 class="font-semibold text-gray-800 text-lg mb-3">🌄 Background (optional)</h2>
-        <textarea id="background-prompt" rows="2" placeholder='Describe the background (e.g. "in an autumn park")'
-          class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"></textarea>
-      </div>
-
-      <!-- Generate Button -->
-      <button id="try-on-btn" onclick="handleTryOn()"
-        class="w-full py-3 rounded-xl text-lg font-semibold shadow-sm transition-all duration-200 bg-gray-200 text-gray-400 cursor-not-allowed"
-        disabled>
-        Try On
-      </button>
-
-      <!-- Result Section -->
-      <div id="result-section" class="hidden">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">✨ Your Try-On Result</h2>
-        <div class="relative">
-          <img id="result-image" class="w-full rounded-2xl shadow-lg object-contain max-h-[600px]" alt="Try-on result" />
-        </div>
-        <div class="flex gap-3 mt-4">
-          <a id="download-btn" href="#" download="tryon-result.jpg"
-            class="flex-1 py-2 bg-gradient-to-r from-teal-500 to-purple-500 text-white rounded-xl text-center font-semibold hover:from-teal-600 hover:to-purple-600 transition text-sm">
-            ⬇️ Download
-          </a>
-          <button onclick="shareResult()"
-            class="flex-1 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition text-sm">
-            🔗 Share
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sidebar Instructions -->
-    <div class="w-full md:w-1/4 bg-white/50 backdrop-blur-sm rounded-2xl p-6 shadow-md md:sticky md:top-8 self-start">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">How to Use</h3>
-      <ul class="text-sm text-gray-600 space-y-3">
-        <li><b>Avatar:</b> Upload an image or describe the person (e.g., "young woman with long hair").</li>
-        <li><b>Clothing:</b> Upload a clothing image (≤4MB, min 256×256px) or describe it (e.g., "red dress").</li>
-        <li><b>Background:</b> Optionally describe the background (e.g., "in an autumn park").</li>
-        <li><b>Options:</b> Set avatar sex and seed for consistent results.</li>
-        <li><b>Best Results:</b> Use clear, well-lit clothing images with minimal occlusion.</li>
-        <li><b>Try On:</b> Click "Try On" to generate the image. Download or share the result.</li>
-      </ul>
-      <div class="mt-6 p-4 bg-purple-50 rounded-xl">
-        <p class="text-xs text-purple-700 font-medium">💡 AI-Powered</p>
-        <p class="text-xs text-purple-500 mt-1">Uses Try-On Diffusion AI to realistically blend clothing onto avatars.</p>
-      </div>
-    </div>
-  </div>
+<div class="grid md:grid-cols-2 gap-6" x-data="tryonForm()">
+  <form id="tryon-form" class="bg-white rounded-xl p-4 shadow space-y-3" enctype="multipart/form-data">
+    <h2 class="font-semibold text-lg">AI Try-On</h2>
+    <input type="file" name="avatar_image" accept="image/*" class="w-full border rounded p-2" required>
+    <input type="file" name="clothing_image" accept="image/*" class="w-full border rounded p-2" required>
+    <input type="text" name="clothing_prompt" placeholder="Clothing prompt" class="w-full border rounded p-2">
+    <input type="text" name="background_prompt" placeholder="Background prompt" class="w-full border rounded p-2">
+    <button type="button" @click="submitTryOn" class="w-full bg-purple-600 text-white py-2 rounded">Generate</button>
+    <div x-show="loading" class="animate-pulse bg-gray-200 h-16 rounded"></div>
+  </form>
+  <section class="bg-white rounded-xl p-4 shadow">
+    <h3 class="font-semibold mb-3">Result</h3>
+    <img x-show="result" :src="result" class="rounded w-full" alt="Try-on result">
+    <p class="text-sm mt-2" x-text="description"></p>
+  </section>
 </div>
 {% endblock %}
-
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/tryon.js') }}"></script>
+<script>
+function tryonForm(){
+  return {
+    loading:false,
+    result:'',
+    description:'',
+    async submitTryOn(){
+      const form = document.getElementById('tryon-form');
+      const token = localStorage.getItem('token');
+      if(!token){ alert('Login first via /docs /auth/login'); return; }
+      this.loading = true;
+      const res = await fetch('/api/tryon',{method:'POST',headers:{'Authorization':'Bearer '+token},body:new FormData(form)});
+      const data = await res.json();
+      this.loading = false;
+      if(!res.ok){ alert(data.detail || 'Try-on failed'); return; }
+      this.result = 'data:image/png;base64,' + data.image_base64;
+      this.description = data.description + ` (in ${data.metadata.duration_ms}ms)`;
+    }
+  }
+}
+</script>
 {% endblock %}

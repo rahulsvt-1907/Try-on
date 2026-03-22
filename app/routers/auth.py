@@ -1,0 +1,36 @@
+import json
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.session import get_db
+from app.models.user import User
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.services.auth_service import create_access_token, hash_password, verify_password
+
+router = APIRouter(prefix='/auth', tags=['auth'])
+
+
+@router.post('/register', response_model=TokenResponse)
+async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+    exists = (await db.execute(select(User).where(User.email == payload.email))).scalar_one_or_none()
+    if exists:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Email already exists')
+
+    user = User(
+        email=payload.email,
+        full_name=payload.full_name,
+        hashed_password=hash_password(payload.password),
+        measurements=json.dumps({}),
+    )
+    db.add(user)
+    await db.commit()
+    return TokenResponse(access_token=create_access_token(payload.email))
+
+
+@router.post('/login', response_model=TokenResponse)
+async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+    user = (await db.execute(select(User).where(User.email == payload.email))).scalar_one_or_none()
+    if not user or not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
+    return TokenResponse(access_token=create_access_token(user.email))

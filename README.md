@@ -1,88 +1,59 @@
-# Stylish AI — Virtual Fashion Try-On (Python)
+# Stylish AI — FastAPI Edition
 
-An AI-powered virtual clothing try-on application built with **Python** and **Flask**.  
-Browse a curated clothing catalog and instantly try on any outfit using the **Try-On Diffusion AI** (via RapidAPI).
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-async-success)
+![Docker](https://img.shields.io/badge/deploy-docker-informational)
+![Tests](https://img.shields.io/badge/tests-pytest-green)
 
-## Tech Stack
+A portfolio-ready AI virtual fashion try-on app migrated from Flask to FastAPI with async SQLAlchemy, JWT auth, HTMX+Jinja, and an AI service layer.
 
-| Layer | Technology |
-|---|---|
-| Backend | Python 3.10+, Flask 3 |
-| AI Integration | [Try-On Diffusion API](https://rapidapi.com/tryondiffusion/api/try-on-diffusion) via `requests` |
-| Frontend | Jinja2 templates, Tailwind CSS (CDN), Vanilla JS |
-| Environment | `python-dotenv` |
+## Stack
+- FastAPI + Pydantic + async SQLAlchemy 2.0
+- SQLite + optional Redis cache
+- HTMX + Alpine.js + TailwindCSS
+- Tenacity retry, Loguru structured logs
+- AI extras: recommender, style-description generation, measurement estimator
 
-## Project Structure
-
-```
-Try-on/
-├── app.py              # Main Flask application & API routes
-├── requirements.txt    # Python dependencies
-├── .env.example        # Environment variable template
-├── db/
-│   ├── __init__.py
-│   └── pins.py         # Clothing catalog data
-├── templates/
-│   ├── base.html       # Base layout with navbar & profile modal
-│   ├── index.html      # Home page — clothing catalog with filters
-│   └── tryon.html      # Virtual try-on page
-└── static/
-    ├── css/styles.css  # Custom styles (glassmorphism)
-    ├── js/main.js      # Home page JS (filters, search)
-    ├── js/tryon.js     # Try-on page JS (AI API call)
-    └── images/logo.png
+## Project structure
+```text
+app/
+  core/        # config + logging
+  db/          # async engine/session
+  models/      # SQLAlchemy ORM
+  routers/     # auth, clothing, try-on, pages
+  schemas/     # Pydantic contracts
+  services/    # AI, cache, auth, recommender, CV
+main.py
+seed.py
+templates/
+tests/
 ```
 
-## Getting Started
-
-### 1. Install dependencies
-
+## Run locally
 ```bash
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-### 2. Set up environment variables
-
-```bash
 cp .env.example .env
+python seed.py
+uvicorn main:app --reload
 ```
 
-Edit `.env` and add your [RapidAPI key](https://rapidapi.com/tryondiffusion/api/try-on-diffusion):
+Docs: `http://localhost:8000/docs`
 
-```
-RAPIDAPI_KEY=your_rapidapi_key_here
-```
-
-### 3. Run the development server
-
+## Docker
 ```bash
-python app.py
+docker compose up --build
 ```
 
-Open [http://localhost:5000](http://localhost:5000) in your browser.
+## Migration guide (old Flask -> new FastAPI)
+1. **Delete/retire**: `app.py` Flask entrypoint, old localStorage-only profile logic in templates/static JS.
+2. **Create**: `main.py`, `app/{routers,models,schemas,services,db,core}`.
+3. **Create DB models**: `ClothingItem`, `User`; run `python seed.py`.
+4. **Replace JS interactions**: use HTMX requests for catalog filtering and Alpine.js for try-on UX state.
+5. **Add auth**: use `/auth/register` + `/auth/login`, store JWT and pass bearer token to `/api/tryon`.
+6. **Add ops**: `/health`, `/metrics`, Docker + compose.
 
-## Features
-
-- 🛍️ **Clothing Catalog** — Pinterest-style grid with 30+ curated outfits
-- 🔍 **Filter & Search** — Filter by gender (Male/Female), category, and search by name
-- 👤 **Profile Management** — Save your measurements and avatar photo (stored in browser)
-- ✨ **AI Virtual Try-On** — Upload or describe both an avatar and a clothing item; the AI generates a realistic composite image
-- 🌄 **Background Customisation** — Add an optional background scene description
-- ⬇️ **Download & Share** — Save the result or share via the native share API
-
-## AI Integration
-
-The application uses the [Try-On Diffusion API](https://rapidapi.com/tryondiffusion/api/try-on-diffusion) to generate realistic try-on images.
-
-**Parameters accepted:**
-- `clothing_image` — Clothing item image (JPEG/PNG/WebP, ≤4MB)
-- `avatar_image` — Person/model image (JPEG/PNG/WebP, ≤4MB)
-- `clothing_prompt` — Text description of the clothing (e.g. *"red floral dress"*)
-- `avatar_prompt` — Text description of the avatar (e.g. *"young woman with long hair"*)
-- `background_prompt` — Optional background description
-- `avatar_sex` — `"male"` or `"female"` (auto-detected if omitted)
-- `seed` — Integer for reproducible results
-
-## Authors
-
-Rahul Srivastava & Hemali Dholariya — UDP066 Fashion Stylish AI
+## Testing
+```bash
+pytest -q
+```

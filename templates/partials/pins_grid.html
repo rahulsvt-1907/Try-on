@@ -1,0 +1,12 @@
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+{% for pin in pins %}
+  <article class="bg-white rounded-xl shadow p-2">
+    <img src="{{ pin.image_url }}" class="w-full h-44 object-cover rounded" alt="{{ pin.name }}" />
+    <p class="font-semibold mt-2 text-sm">{{ pin.name }}</p>
+    <p class="text-xs text-gray-500">{{ pin.gender }} · {{ pin.category }}</p>
+  </article>
+{% endfor %}
+</div>
+{% if not pins %}
+<div class="text-center py-10 text-gray-500">No items found.</div>
+{% endif %}
